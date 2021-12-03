@@ -7,10 +7,9 @@ categories: jekyll update
 
 Optional은 어떻게 사용해야 할까?
 
-Kotlin 이라면 ?. 같은 문법을 지원하고 있지만, Java에서는 if (obj == null) 로 null 여부를 확인한 뒤에 사용해야 한다.
-
-Optional.ofNullable(obj), of 로 감싸서 isPresent나 map, orElse 등의 Optional에서 지원하는
-여러 메소드를 사용하여 null 체크를 했는데, 사용하다보니 이게 맞나 싶은 의문이 들었다
+Kotlin 이라면 ?. 같은 문법을 지원하고 있지만, Java에서는 if (obj == null) 로 null 여부를 확인한 뒤에 사용해야 한다.  
+Optional.ofNullable(obj) 로 감싸서 isPresent나 map, orElse 등의 Optional에서 지원하는
+여러 메소드를 사용하여 null 체크를 했지만, 사용하다보니 굳이 null 체크를 Optional로 해야 하나 싶은 의문이 들었다
 
 예를 들어 기존의 null 체크가 다음과 같다면,
 
@@ -38,13 +37,14 @@ void fun(String param) {
 }
 ```
 
-이처럼 Optional에 대해서 고민을 하던 중에 Optional에 대한 흥미로운 글을 찾았다
+그러던 와중에 Optional에 대한 흥미로운 글을 찾았다.
 
 https://stackoverflow.com/a/26328555
 
-요약을 하자면,
-Optional을 Java에 추가한 이유는 메소드의 리턴 값이 없음을 명확하게 표현하기 위해서 였으나,
+요약을 하자면,  
+Optional을 Java에 추가한 이유는 메소드의 리턴 값이 없음을 명확하게 표현하기 위해서 였으나,  
 Optional을 어떻게 사용하던지 그건 개발자의 몫이라는 거다.
+(알아서 잘 사용하라는 거다..)
 
 '역시'.. Optional은 아무데나 사용하도록 만든게 아니었다.
 
