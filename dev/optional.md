@@ -28,9 +28,8 @@ void fun(String param) {
 ```
 
 Optional을 사용했을 때보다 if 조건으로 Null 체크하는 문의 가독성이 더 좋아보인다.
-내가 잘 사용하고 있는게 맞는가라는 의문과 함께 사용에 신중을 기하게 되었다.
 
-물론 가끔씩 사용 하긴 했다. 요렇게..
+물론 가끔씩 사용 하긴 했다, 요렇게..
 ```java
 void fun(String param) {
     SimpleObject().builder()
@@ -44,7 +43,7 @@ void fun(String param) {
 https://stackoverflow.com/a/26328555
 
 요약을 하자면,
-Optional을 Java에 추가한 의도는 메소드의 리턴 값이 없음을 명확하게 표현하기 위해서였지만,
+Optional을 Java에 추가한 이유는 메소드의 리턴 값이 없음을 명확하게 표현하기 위해서 였으나,
 Optional을 어떻게 사용하던지 그건 개발자의 몫이라는 거다.
 
 '역시'.. Optional은 아무데나 사용하도록 만든게 아니었다.
@@ -57,6 +56,6 @@ public Optional<Member> findMember(final long srl) {
 }
 ```
 
-무작정 null을 리턴하기 보다는 Optional을 사용함으로써 리턴 값이 없을 수도 있다는 것을
-caller에게 전달할 수 있다.
+무작정 null을 리턴하기 보다는 Optional을 사용함으로써  
+리턴 값이 없을 수도 있다는 것을 caller에게 명확하게 전달할 수 있다.
 
