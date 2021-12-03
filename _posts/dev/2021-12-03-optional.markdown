@@ -1,12 +1,9 @@
 ---
 layout: post
-title:  "Optional"
+title:  "Optional은 어떻게 사용해야 할까?"
 date:   2021-12-02 01:48:16 +0900
 categories: jekyll update
 ---
-
-Optional은 어떻게 사용해야 할까?
-
 Kotlin 이라면 ?. 같은 문법을 지원하고 있지만, Java에서는 if (obj == null) 로 null 여부를 확인한 뒤에 사용해야 한다.  
 Optional.ofNullable(obj) 로 감싸서 isPresent나 map, orElse 등의 Optional에서 지원하는
 여러 메소드를 사용하여 null 체크를 했지만, 사용하다보니 굳이 null 체크를 Optional로 해야 하나 싶은 의문이 들었다
