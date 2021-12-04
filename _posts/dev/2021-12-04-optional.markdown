@@ -22,7 +22,7 @@ void fun(String param) {
 사용하다보니 굳이 null 체크를 Optional로 해야 하나 싶은 의문이 들었다,  
 위에 코드만 봐도 if 조건으로 null 체크하는게 가독성이 더 좋아보이는건.. 나만 그런가?
 
-그렇다고 Optional을 사용 안한 것은 아니다, 요렇게 적절하게 사용하긴 했다
+그렇다고 Optional을 사용 안한 것은 아니다, 요렇게 사용하긴 했다
 ```java
 void fun(String param) {
     SimpleObject().builder()
@@ -42,7 +42,10 @@ Optional을 어떻게 사용하던 그건 개발자의 몫이라는 거다.
 
 역시.. Optional은 아무데나 사용하도록 만든게 아니었다.
 
-요렇게 리턴에 특화된 녀석이었다.
+무작정 null을 리턴하기 보다는 Optional을 사용함으로써  
+리턴 값이 없을 수도 있다는 것을 caller에게 명확하게 전달할 수 있다.
+
+예를 들면,
 ```java
 private Optional<Member> findMember(final long srl) {
     final Member member = this.repository.find(srl);
@@ -57,8 +60,7 @@ public void someMethod() {
 }
 ```
 
-무작정 null을 리턴하기 보다는 Optional을 사용함으로써  
-리턴 값이 없을 수도 있다는 것을 caller에게 명확하게 전달할 수 있다.
+
 
 
 [https://stackoverflow.com/a/26328555]: https://stackoverflow.com/a/26328555
