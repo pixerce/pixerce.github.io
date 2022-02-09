@@ -18,11 +18,10 @@ abstract의 특징을 보면,
 - 다양한 메서드 접근 제어자를 사용할 수 있다<br>
 <br>
 
-그리고 interface와 abstract의 공통점으로는 <br>
-자체적으로는 객체화가 불가능하여 구현을 하거나 상속을 받아야만 가능한다. 
+그리고 interface와 abstract의 공통점으로는 자체적으로는 객체화가 불가능하여 구현을 하거나 상속을 받아야만 가능한다. 
 <br><br>
 
-그럼, interface와 abstract는 언제 사용해야 할까?<br>
+다시 질문으로 돌아가서, "interface와 abstract는 언제 사용해야 할까?"<br>
 - 확장성을 대비하고, 최소한의 인터페이스를 제공하여 구현하는 클래스들 끼리의 독립성을 보장하고 싶다면 => interface<br>
 - 기본적인 구현을 제공하여 향후에 추가하는 클래스들에서도 abstract의 구현사항을 재사용하지만 변경이 필요한 여지가 있다면 => abstract
 
@@ -69,10 +68,10 @@ class TheOtherFeeCalculator {
     }
 }
 ```
-
+<br>
 그리고 java 1.8 부터 interface에 default가 추가되면서, body가 있는 메서드 선언이 가능해졌다.<br>
 abstract와의 경계가 모호해졌다고 생각했는데, default의 탄생 배경을 보면 꼭 그렇지만도 않다.<br>
-interface에는 의외로 치명적인 단점이 있는데 바로 확장성이다.<br>
+왜냐하면 interface에도 의외로 치명적인 단점이 있는데 바로 확장성이다.<br>
 
 ```java
 interface Display {
@@ -92,7 +91,7 @@ class Oled implements Display {
 }
 // 수 많은 Display를 구현한 디스플레이 클래스들
 ```
-위 예제에서 Display를 구현한 Led와 OLED외에 수 많은 Display를 구현한 클래스들이 있다고 가정하고<br>
+위 예제에서 Display를 구현한 Led와 OLED외에 수 많은 Display를 구현한 클래스들이 있다고 가정하자.<br>
 Display 인터페이스에 새로운 메서드를 추가한다면.... Display를 구현한 모든 클래스에 찾아서 구현체를 만들어 줘야 한다.<br>
 이는 생각보다 꽤 번거로운 작업인데 이러한 interface의 단점을 보완하기 위해서 나온게 default 함수이다.
 
