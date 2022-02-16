@@ -71,7 +71,7 @@ class TheOtherFeeCalculator {
 <br>
 그리고 java 1.8 부터 interface에 default가 추가되면서, body가 있는 메서드 선언이 가능해졌다.<br>
 abstract와의 경계가 모호해졌다고 생각했는데, default의 탄생 배경을 보면 꼭 그렇지만도 않다.<br>
-왜냐하면 interface에 새로운 메서드를 추가할 경우 모든 구현 클래스에서 메서드의 body를 구현해야 하기 때문이다.<br>
+예를 들어,
 
 ```java
 interface Display {
