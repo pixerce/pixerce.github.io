@@ -7,14 +7,15 @@ categories: Java
 
 Java에서 String은 불변 객체이다.  
 이러한 특성 때문에 JVM은 스트링을 생성하는 방식에 따라서 다르게 취급을 한다.  
-* 리터럴 스트링 (literal String):  
+* 리터럴 스트링 (literal String):    
+
 ```java
 String txt = "JetStream";
-```
+```  
 Heap 영역에 있는 String Pool에 메모리를 확보한 후에 리터럴 스트링을 저장한다.  
-이 후 같은 리터럴 스트링을 사용하는 곳이 있다면 처음에 생성한 리터럴 스트링을 가리키도록 한다.  
+같은 리터럴 스트링을 사용하는 곳이 있다면 처음에 생성한 리터럴 스트링을 가리키도록 한다.  
 (이를 intern 이라고 한다.)  
-따라서,
+따라서,  
 ```java
 String txt1 = "JetStream";
 String txt2 = "JetStream";
