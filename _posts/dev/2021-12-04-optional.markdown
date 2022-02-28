@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title:  "Optional은 어떻게 사용해야 할까?"
 date:   2021-12-04 00:48:16 +0900
 categories: jekyll update

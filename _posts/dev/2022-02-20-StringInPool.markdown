@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title:  "String In Pool"
 date:   2022-02-20 00:38:16 +0900
 categories: Java

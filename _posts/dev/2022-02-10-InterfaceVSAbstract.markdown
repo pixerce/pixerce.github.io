@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title:  "Interface vs Abstract"
 date:   2022-02-10 00:07:16 +0900
 categories: Java
