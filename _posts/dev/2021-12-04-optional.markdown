@@ -1,10 +1,12 @@
 ---
 layout: default
-title:  "Optional은 어떻게 사용해야 할까?"
-date:   2021-12-04 00:48:16 +0900
-categories: jekyll update
+title: "Optional은 어떻게 사용해야 할까?"
+date: 2021-12-04 00:48:16 +0900
+categories: java
 ---
-null 체크를 위해서 Kotlin 에서는 ?. 같은 문법을 지원하고 있지만, Java에서는 if (obj == null) 로 null 여부를 확인한 뒤에 사용해야 한다.  
+
+null 체크를 위해서 Kotlin 에서는 ?. 같은 문법을 지원하고 있지만, Java에서는 if (obj == null) 로 null 여부를 확인한 뒤에 사용해야 한다.
+
 ```java
 void fun(String param) {
     if (param == null)
@@ -14,15 +16,18 @@ void fun(String param) {
 
 Optional.ofNullable(obj) 로 감싸서 isPresent나 map, orElse 등의 Optional에서 지원하는
 여러 메소드를 사용하여 null 체크도 해봤지만,
+
 ```java
 void fun(String param) {
     Optional.ofNullable(param).orElseThrow(()-> new IllegalArgumentException("not acceptable"));
 }
 ```
+
 사용하다보니 굳이 null 체크를 Optional로 해야 하나 싶은 의문이 들었다,  
 위에 코드만 봐도 if 조건으로 null 체크하는게 가독성이 더 좋아보이는건.. 나만 그런가?
 
 그렇다고 Optional을 사용 안한 것은 아니다, 요렇게 사용하긴 했다
+
 ```java
 void fun(String param) {
     SimpleObject().builder()
@@ -30,6 +35,7 @@ void fun(String param) {
         .build();
 }
 ```
+
 <br> 
 한동안 잊고 지내다가 최근에 Optional에 대한 흥미로운 글을 찾았는데,
 
@@ -40,12 +46,12 @@ Optional을 Java에 추가한 이유는 메소드의 리턴 값이 없음을 명
 Optional을 어떻게 사용하던 그건 개발자의 몫이라는 거다.
 (알아서 잘 사용하라는 거다..)
 
-
 <br>
 무작정 null을 리턴하기 보다는 Optional을 사용함으로써  
 리턴 값이 없을 수도 있다는 것을 caller에게 명확하게 전달할 수 있다.
 
 예를 들면,
+
 ```java
 private Optional<Member> findMember(final long srl) {
     final Member member = this.repository.find(srl);
@@ -59,8 +65,5 @@ public void someMethod() {
     }
 }
 ```
-
-
-
 
 [https://stackoverflow.com/a/26328555]: https://stackoverflow.com/a/26328555
