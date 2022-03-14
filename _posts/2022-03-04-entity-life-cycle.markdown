@@ -6,7 +6,7 @@ categories: JPA
 ---
 
 **Persistence Context**  
-Persistence Context는 managed 상태의 엔터티들의 집합으로 이들의 라이프 사이클을 관리한다. 찾고자 하는 엔터티가 Persistence Context 에 있다면 디비 조회 없이 Context 내의 엔터티를 리턴하며, db 조회가 필요하다면 refresh()를 사용하면 된다.
+Persistence Context는 managed 상태의 엔터티들의 집합으로 이들의 라이프 사이클을 관리한다. 찾고자 하는 엔터티가 Persistence Context 에 있다면 디비 조회 없이 Context 내의 엔터티를 리턴하며, db 조회가 필요하다면 EntityManager.refresh()를 사용하면 된다.
 
 Entity는 4가지의 상태가 있는데 transient, managed, removed, detached가 있다.  
 <br>
@@ -57,17 +57,3 @@ Entity는 4가지의 상태가 있는데 transient, managed, removed, detached�
 >     employee.setName("Json");
 >     entityManager.remove(employee);
 > ```
-
-<br>
-
-이밖에,
-
-**JPA와 Hibernate 어떤 관계인가?**
-
-> - JPA: ORM에 대한 Java API 인터페이스
-> - Hibernate: JPA 구현체  
->   (이 밖에 OpenJPA, TopLink Essentials 등이 있다, JPA 보다 hibernate가 먼저 나와서 JPA를 정립할 때 Hibernate가 많은 영향을 끼쳤다고 한다. )
-
-<br>
-
-**Hibernate의 Session은 언제 열리는 것인가?**
