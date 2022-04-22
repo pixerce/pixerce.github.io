@@ -1,0 +1,101 @@
+---
+layout: default
+title: "Redis"
+date: 2022-03-14 00:03:16 +0900
+categories: Redis
+---
+
+**레디스란?**
+오픈 소스 기반의 in-memory data structure store이다.  
+**RE**mote **DI**ctionary **S**ervice
+
+<br>
+
+**In-memory**  
+몇몇 기능을 제외한 대부분의 연산을 메모리 상에서 실행하기 빠른 속도를 보장하며, key-value 쌍의 해시 테이블 구조로 데이터를 메모리에 읽고 쓴다.
+
+메모리에만 데이터를 저장한다는 것은 속도면에서 큰 이점이 되는데, MySql만 봐도 InnDB에서는 buffer pool이라는 메모리 공간을 사용하여 인덱스와 데이터를 저장해둔다. 자주 읽는 데이터는 page 단위로 캐싱하여 사용하기 때문에 미처 캐싱이 안된 데이터를 읽는다면 디스크에서 데이터를 읽는 추가 작업이 필요하다. 물론 충분히 빠르지만서도 메모리와 디스크라는 물리적으로 엄연한 차이에서 발생하는 속도 이슈가 있기에 redis는 메모리에서만 데이터를 읽고 쓴다.
+
+물리적으로 디스크가 갖는 한계가 있기에 메모리 보다 빠를 수 없다.
+<img src=https://sites.google.com/site/cachememory2011/_/rsrc/1311628836036/memory-hierarchy/hei.png>
+출처: https://sites.google.com/site/cachememory2011/memory-hierarchy
+
+<br>
+
+**Single Thread**  
+레디스를 처음 접한다면 가장 많이 듣는 단어가 아닐까 싶다. Single Thread라서 빠르다는데 무슨 소리인가 싶었는데, Single Thread는 명령어를 처리하는 프로세스가 싱글 스레드를 사용한다는 거지 레디스의 모든 기능을 싱글 스레드로 구현했다는 것은 아니다. (예를 들어, AOF 설정을 해두면 fork를 하는데 이 때도 다른 스레드를 사용한다.)
+
+_그럼 Single Thread를 사용하는데도 왜 빠른 걸까?_
+Redis가 처리하는 대부분의 요청은 메모리와 관련이 있기 때문에 Single Thread 에서도 일반적인 레디스 서버에서는 분당 100만개의 요청을 핸들링 할 수 있다. Single Thread로도 분당 백만개를 처리할 수 있다는데 굳이 사용하기 번거롭고 컨텍스트 스위칭이 발생하는 멀티 스레드가 필요할까?
+
+반면, 처리 시간이 오래 걸리는 명령어 사용에 주의를 기울여야 한다. 싱글 스레드로 명령어를 처리하기 때문에 앞선 명령어를 처리하는데 시간이 오래 걸린다면 이후의 명령어들은 모두 blocking 된다.
+예: keys 명령어
+
+<br>
+
+**메모리 사용량**
+
+> An empty instance uses ~ 3MB of memory.  
+> 1 Million small Keys -> String Value pairs use ~ 85MB of memory.  
+> 1 Million Keys -> Hash value, representing an object with 5 fields, use ~ 160 MB of memory.
+
+<br>
+
+**인스턴스별 저장 가능한 키**
+Redis can handle up to 2^32 keys, and was tested in practice to handle at least 250 million keys per instance.
+
+<br>
+
+**Cluster**  
+Active-Passive 형태로 마스터 - 레플리카로 연결하여 서버를 구성할 수 있으며 이러한 서버를 여러 개 묶어서 클러스터를 구축할 수 있다. 레디스 클러스터를 구성하고 있는 각각의 서버를 노드라고 한다, 노드는 TCP, binary protocol로 구성된 Redis Cluster Bus 를 사용하여 서로 연결되어 있으며, 각 노드들은 다음의 정보를 가지고 있다.
+
+- key-value 데이터
+- 클러스터의 상태 정보
+- 노드와 매핑되는 키 정보
+
+<img src="/_img/redis/redis-cluster.png">
+<br><br>
+
+_키 분배 방식_
+클러스터를 구성하는 각각의 마스터들은 16384 슬롯의 일부분을 담당하게 되는데 슬롯과 키를 매핑하는 알고리즘은 다음과 같으며,
+
+> HASH_SLOT = CRC16(key) mod 16384
+
+3개의 마스터가 있다면 다음과 같이 할당된다.
+
+```bash
+0 ~ 5xxx: master1
+5xxx ~ 11xxx: master2
+11xxx ~ 16383: master3
+
+```
+
+클러스터에 있는 노드라면 Master, Replica 구분 없이 클라이언트의 요청을 받을 수 있다. (대부분 마스터와 통신을 하지만, 쓰는 건 마스터에 하고 읽는건 레프리카에서 할 수도 있다) 요청을 받은 노드가 키와 매핑되는 슬롯을 가지고 있다면 처리하고, 아니라면 노드 맵에서 해당 키를 핸들링할 수 있는 노드를 찾은 후 클라이언트에 노드의 정보를 보내준다
+예를 들면 다음의 정보를 클라이언트에게 전달하는데,
+
+```bash
+GET x
+-MOVED 3999 127.0.0.1:6381
+// 3999키를 6381 포트를 갖고 있는 노드로 보내렴
+```
+
+클라이언트는 노드로부터 받은 메시지를 활용하여 해당 노드에 다시 요청을 보낸다. 매번 위와 같은 프로세스를 거치는 것은 비효율적으로 보인다. 따라서 클라이언트도 슬롯에 대한 정보를 저장해서 다음 요청 시에 사용하도록 구현되어 있다
+
+출처: https://redis.io/docs/reference/cluster-spec/#moved-redirection
+
+<br>
+
+_Active-Passive_
+각각의 노드는 클러스터 버스로 연결되어 있기에 주기적인 PING-PONG으로 문제가 발생한 마스터를 발견한다. 아래의 조건이 모두 적용되는 마스터가 있을 경우 해당 마스터의 레플리카(replica)를 마스터 노드로 전환시킨다.
+
+- 마스터의 상태가 FAIL
+- 마스터가 제공하고 있던 slot의 수가 0보다 많은 경우
+- 더 이상 레플리카로 복제가 안되며, 레플리카가 가지고 있는 복제 데이터가 마스터의 데이터를 대신할 수 있을 정도로 오래되지 않았을 때
+
+그러면, **_하나의 마스터가 여러 개의 레플리카를 가지고 있다면 어떻게 될까?_**
+아래의 그림 처럼 레플리카의 투표가 시작된다. 각각의 레플리카는 클러스터에 있는 모든 마스터에 마스터 투표 요청을 보내고, 요청을 받은 마스터들은 응답을 보낸다.
+
+<img src="/_img/redis/redis-replica-election.png">
+
+참고 자료  
+https://redis.io/docs/getting-started/faq/#how-can-redis-use-multiple-cpus-or-cores
