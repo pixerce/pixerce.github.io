@@ -8,13 +8,19 @@ categories: Redis
 **레디스란?** **RE**mote **DI**ctionary **S**ervice  
 오픈 소스 기반의 in-memory data structure store이다.
 
-몇몇 기능을 제외한 대부분의 연산을 메모리 상에서 실행하기 때문에 빠른 속도를 보장하며, key-value 쌍의 해시 테이블 구조로 데이터를 메모리에 읽고 쓴다.
+몇몇 기능을 제외한 대부분의 연산을 메모리 상에서 실행하기 때문에 빠른 속도를 보장하며, key-value 쌍의 해시 테이블 구조로 데이터를 메모리에 읽고 쓴다.  
+대략적인 메모리 사용량은 다음과 같으며 빠른 성능을 위해서 메모리 관리에 주의를 기울여야 한다.
 
-물리적으로 메모리는 디스크 보다 빠르기에, 메모리에만 데이터를 저장한다는 것은 속도면에서 큰 이점 된다.
-<img src=https://sites.google.com/site/cachememory2011/_/rsrc/1311628836036/memory-hierarchy/hei.png>
-출처: https://sites.google.com/site/cachememory2011/memory-hierarchy
+> An empty instance uses ~ 3MB of memory.  
+> 1 Million small Keys -> String Value pairs use ~ 85MB of memory.  
+> 1 Million Keys -> Hash value, representing an object with 5 fields, use ~ 160 MB of memory.
 
-MySql의 InnDB를 예로 들자면, 디스크에 데이터를 저장하지만 buffer pool이라는 메모리 공간을 사용하여 인덱스와 데이터를 저장해둔다. 자주 읽는 데이터는 page 단위로 캐싱하여 사용하기 때문에 미처 캐싱이 안된 데이터를 읽는다면 디스크에서 데이터를 읽는 추가 작업이 필요하다. 물론 충분히 빠르지만서도 메모리와 디스크라는 물리적으로 엄연한 차이에서 발생하는 속도 이슈가 있기에 redis는 메모리에서만 데이터를 읽고 쓴다.
+그러면 어떤 부분에 주위를 기울여야 할까?
+-> redis에서 데이터를 삭제하면 데이터를 위해서 할당했던 메모리를 운영체제가 바로 회수 못하는 케이스가 발생한다. 운영체제 입장에서는 사용하고 있지만 실제로 레디스는 사용안하고 있는 상태로 이러한 메모리의 낭비가 발생하는 현상을 memory fragmentation 이라고 한다. 이를 위해서 redis에서는 info memory라는 명령어를 지원하는데 used_memory / used_memory_rss 로 계산한 fragmentation ratio를 참고하여 메모리 관리를 하면 된다.
+
+-> redis에서는 메모리 할당을 위해서 jemalloc을 사용한다
+jemalloc은 메모리 할당을 2^n 크기로 할당 하는데 예를 들면 8bytes, 16 bytes, 32bytes ... 이다. 따라서 20bytes의 데이터를 저장한다면 jemalloc은 32bytes를 할당하게 된다. 12 bytes의 메모리를 낭비하는 셈이지만 나중에 10 bytes의 데이터를 저장할 때 사용하면 된다. 문제는 데이터의 삭제나 수정으로 발생하는 메모리 파편화인데 예를 들면 다음의 그림과 같다.
+<img src="/_img/redis/redis-jemalloc.png">
 
 <br>
 
@@ -26,19 +32,6 @@ Redis가 처리하는 대부분의 요청은 메모리와 관련이 있기 때�
 
 반면, 처리 시간이 오래 걸리는 명령어 사용에 주의를 기울여야 한다. 싱글 스레드로 명령어를 처리하기 때문에 앞선 명령어를 처리하는데 시간이 오래 걸린다면 이후의 명령어들은 모두 blocking 된다.
 예: keys 명령어
-
-<br>
-
-**메모리 사용량**
-
-> An empty instance uses ~ 3MB of memory.  
-> 1 Million small Keys -> String Value pairs use ~ 85MB of memory.  
-> 1 Million Keys -> Hash value, representing an object with 5 fields, use ~ 160 MB of memory.
-
-<br>
-
-**인스턴스별 저장 가능한 키**
-Redis can handle up to 2^32 keys, and was tested in practice to handle at least 250 million keys per instance.
 
 <br>
 
@@ -81,6 +74,9 @@ GET x
 
 <br>
 
+_인스턴스별 저장 가능한 키_
+Redis can handle up to 2^32 keys, and was tested in practice to handle at least 250 million keys per instance.
+
 _Active-Passive_
 아래의 조건이 모두 적용되는 마스터가 있을 경우 해당 마스터의 레플리카(replica)를 마스터 노드로 전환하는 선출 과정을 시작한다.
 
@@ -103,6 +99,9 @@ DELAY = 500 milliseconds + random delay between 0 and 500 milliseconds +
 위 선출 시간 동안 replica 들은 대기를 하고 있으며 그 동안 마스터의 FAIL 상태가 클러스터 전역에 전파된다.
 
 REPLICA_RANK는 마스터로부터 복제된 데이터와 관련이 있는데 가장 많은 데이터 복제가 된 레플리카 부터 0, 1, 2 순으로 랭크를 부여한다. rank가 낮을 수록 다른 레플리카 보다 먼저 선출에 우선순위를 갖는다. 하지만 rank은 어디까지나 우선순위일 뿐, 마스터들의 투표 (영어로 election 이지만 실제로는 마스터와 레플리카의 currentEpoch 값을 비교한다)에 의해서 마스터로 전환되는 레클리카를 결정된다.
+
+그러면, **_마스터로 전환된 레플리카마저 문제가 발생한다면?_**
+더 이상의 request를 받지 않는다..
 
 참고 자료  
 https://redis.io/docs/getting-started/faq/#how-can-redis-use-multiple-cpus-or-cores
