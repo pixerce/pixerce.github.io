@@ -9,18 +9,19 @@ categories: Redis
 오픈 소스 기반의 in-memory data structure store이다.
 
 몇몇 기능을 제외한 대부분의 연산을 메모리 상에서 실행하기 때문에 빠른 속도를 보장하며, key-value 쌍의 해시 테이블 구조로 데이터를 메모리에 읽고 쓴다.  
-대략적인 메모리 사용량은 다음과 같으며 빠른 성능을 위해서 메모리 관리에 주의를 기울여야 한다.
+대략적인 메모리 사용량은 다음과 같으며 빠른 성능을 위해서는 메모리 관리에 주의를 기울여야 한다.
 
 > An empty instance uses ~ 3MB of memory.  
 > 1 Million small Keys -> String Value pairs use ~ 85MB of memory.  
 > 1 Million Keys -> Hash value, representing an object with 5 fields, use ~ 160 MB of memory.
 
-그러면 어떤 부분에 주위를 기울여야 할까?
--> redis에서 데이터를 삭제하면 데이터를 위해서 할당했던 메모리를 운영체제가 바로 회수 못하는 케이스가 발생한다. 운영체제 입장에서는 사용하고 있지만 실제로 레디스는 사용안하고 있는 상태로 이러한 메모리의 낭비가 발생하는 현상을 memory fragmentation 이라고 한다. 이를 위해서 redis에서는 info memory라는 명령어를 지원하는데 used_memory / used_memory_rss 로 계산한 fragmentation ratio를 참고하여 메모리 관리를 하면 된다.
+<br>
 
--> redis에서는 메모리 할당을 위해서 jemalloc을 사용한다
+redis에서는 메모리 할당을 위해서 jemalloc을 사용한다
 jemalloc은 메모리 할당을 2^n 크기로 할당 하는데 예를 들면 8bytes, 16 bytes, 32bytes ... 이다. 따라서 20bytes의 데이터를 저장한다면 jemalloc은 32bytes를 할당하게 된다. 12 bytes의 메모리를 낭비하는 셈이지만 나중에 10 bytes의 데이터를 저장할 때 사용하면 된다. 문제는 데이터의 삭제나 수정으로 발생하는 메모리 파편화인데 예를 들면 다음의 그림과 같다.
-<img src="/_img/redis/redis-jemalloc.png">
+<img src="/_img/redis/redis-memory-allocation.png">
+
+데이터를 삭제하면 할당했던 메모리를 운영체제가 바로 회수하지 못하는 케이스가 발생할 수도 있다. 운영체제 입장에서는 사용하고 있지만 실제로 레디스는 사용안하고 있는 상태로 이러한 메모리의 낭비가 발생하는 현상을 memory fragmentation 이라고 한다. 이를 위해서 redis에서는 info memory라는 명령어를 지원하는데 used_memory / used_memory_rss 로 계산한 fragmentation ratio를 참고하여 메모리 관리를 하면 된다.
 
 <br>
 
@@ -36,7 +37,7 @@ Redis가 처리하는 대부분의 요청은 메모리와 관련이 있기 때�
 <br>
 
 **Cluster**  
-Active-Passive 형태로 마스터 - 레플리카로 연결하여 서버를 구성할 수 있으며 이러한 서버를 여러 개 묶어서 클러스터를 구축할 수 있다. 레디스 클러스터를 구성하고 있는 각각의 서버를 노드라고 한다, 노드는 TCP, binary protocol로 구성된 Redis Cluster Bus 를 사용하여 서로 연결되어 있으며, 각 노드들은 다음의 정보를 가지고 있다.
+Active-Passive (마스터 - 레플리카) 형태로 연결하여 서버를 구성할 수 있으며 이러한 서버를 여러 개 묶어서 클러스터를 구축할 수 있다. 레디스 클러스터를 구성하고 있는 각각의 서버를 노드라고 한다, 노드는 TCP, binary protocol로 구성된 Redis Cluster Bus 를 사용하여 서로 연결되어 있으며, 각 노드들은 다음의 정보를 가지고 있다.
 
 - key-value 데이터
 - 클러스터의 상태 정보
