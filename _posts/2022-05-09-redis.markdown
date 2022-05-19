@@ -15,18 +15,15 @@ categories: Redis
 > 1 Million small Keys -> String Value pairs use ~ 85MB of memory.  
 > 1 Million Keys -> Hash value, representing an object with 5 fields, use ~ 160 MB of memory.
 
-<br>
-
 redis에서는 메모리 할당을 위해서 jemalloc을 사용한다
-jemalloc은 메모리 할당을 2^n 크기로 할당 하는데 예를 들면 8bytes, 16 bytes, 32bytes ... 이다.  
+jemalloc은 메모리 할당을 2^n 크기로 할당 하는데, 예를 들면 8bytes, 16 bytes, 32bytes ... 이다.  
 따라서 20bytes의 데이터를 저장한다면 jemalloc은 32bytes를 할당하게 된다. 이렇게 되면 12 bytes의 메모리를 낭비하는 셈이지만 나중에 10 bytes의 데이터를 저장할 때 사용한다.  
 문제는 데이터의 삭제나 수정으로 발생하는 메모리 파편화인데 예를 들면 다음의 그림과 같다.
 <img src="/_img/redis/redis-memory-allocation.png">
 
-데이터를 삭제하면 할당했던 메모리를 운영체제가 바로 회수하지 못하는 케이스가 발생할 수도 있다. 운영체제 입장에서는 사용하고 있지만 실제로 레디스는 사용안하고 있는 상태로 이러한 메모리의 낭비가 발생하는 현상을 memory fragmentation 이라고 한다.  
+데이터를 삭제했지만 할당했던 메모리를 운영체제가 바로 회수하지 못하는 케이스가 발생할 수도 있다.  
+운영체제 입장에서는 사용하고 있지만 실제로 레디스는 사용안하고 있는 상태로 이러한 메모리의 낭비가 발생하는 현상을 memory fragmentation 이라고 한다.  
 이를 위해서 redis에서는 info memory라는 명령어를 지원하는데 used_memory / used_memory_rss 로 계산한 fragmentation ratio를 참고하여 메모리 관리를 하면 된다.
-
-<br>
 
 **Single Thread**  
 레디스를 처음 접한다면 가장 많이 듣는 단어가 아닐까 싶다. Single Thread라서 빠르다는데 무슨 소리인가 싶었는데, Single Thread는 명령어를 처리하는 프로세스가 싱글 스레드를 사용한다는 거지 레디스의 모든 기능을 싱글 스레드로 구현했다는 것은 아니다. (예를 들어, AOF 설정을 해두면 fork를 하는데 이 때도 다른 스레드를 사용한다.)
@@ -59,10 +56,10 @@ _키 분배 방식_
 0 ~ 5xxx: master1
 5xxx ~ 11xxx: master2
 11xxx ~ 16383: master3
-
 ```
 
-클러스터에 있는 노드라면 Master, Replica 구분 없이 클라이언트의 요청을 받을 수 있다. (대부분 마스터와 통신을 하지만, 쓰는 건 마스터에 하고 읽는건 레프리카에서 할 수도 있다) 요청을 받은 노드가 키와 매핑되는 슬롯을 가지고 있다면 처리하고, 아니라면 노드 맵에서 해당 키를 핸들링할 수 있는 노드를 찾은 후 클라이언트에 노드의 정보를 보내준다
+클러스터에 있는 노드라면 Master, Replica 구분 없이 클라이언트의 요청을 받을 수 있다. (대부분 마스터와 통신을 하지만, 쓰는 건 마스터에 하고 읽는건 레프리카에서 할 수도 있다)  
+요청을 받은 노드가 키와 매핑되는 슬롯을 가지고 있다면 처리하고, 아니라면 노드 맵에서 해당 키를 핸들링할 수 있는 노드를 찾은 후 클라이언트에 노드의 정보를 보내준다.  
 예를 들면 다음의 정보를 클라이언트에게 전달하는데,
 
 ```bash
@@ -74,8 +71,6 @@ GET x
 클라이언트는 노드로부터 받은 메시지를 활용하여 해당 노드에 다시 요청을 보낸다. 매번 위와 같은 프로세스를 거치는 것은 비효율적으로 보인다. 따라서 클라이언트도 슬롯에 대한 정보를 저장해서 다음 요청 시에 사용하도록 구현되어 있다
 
 출처: https://redis.io/docs/reference/cluster-spec/#moved-redirection
-
-<br>
 
 _인스턴스별 저장 가능한 키_  
 Redis can handle up to 2^32 keys, and was tested in practice to handle at least 250 million keys per instance.
