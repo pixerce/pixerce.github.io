@@ -3,6 +3,7 @@ layout: default
 title: "Entity Life Cycle"
 date: 2022-01-17 00:03:16 +0900
 categories: JPA
+published: false
 ---
 
 **Persistence Context**  
